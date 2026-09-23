@@ -47,4 +47,4 @@ jobs:
           TRELLO_TICKET:  ${{ needs.validar.outputs.ticket }}
           TRELLO_COLUMNA: CAB
           TRELLO_COMENTARIO: "Tarjeta actualizada desde el Pipeline. Chequeos Digital y Ciberseguridad OK."
-        run: python scripts/trello_mover.py
+        run: python .github/scripts/trello_mover.py

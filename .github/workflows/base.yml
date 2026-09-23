@@ -53,7 +53,7 @@ jobs:
 
       - name: Validar properties.yml
         id: validar
-        run: python scripts/check_context.py
+        run: python .github/scripts/check_context.py
 
   # ---------- STEP 2: Security Scan ----------
   security-scan:
@@ -84,7 +84,7 @@ jobs:
           pip install semgrep
           # Reglas locales (no dependen del registry) + reglas publicas si hay red.
           semgrep scan \
-            --config .semgrep/rules.yml \
+            --config .github/semgrep/rules.yml \
             --config p/security-audit \
             --metrics off \
             --json --output semgrep.json \
