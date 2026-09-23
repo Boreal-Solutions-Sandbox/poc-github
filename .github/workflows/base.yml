@@ -58,7 +58,6 @@ jobs:
   # ---------- STEP 2: Security Scan ----------
   security-scan:
     name: Security Scan
-    needs: check-context
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
