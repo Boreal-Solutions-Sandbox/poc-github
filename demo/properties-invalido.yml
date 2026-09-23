@@ -1,4 +1,4 @@
-# Version invalida de properties.yml, para demostrar el fallo de Check Context.
+# Version invalida de properties.yml, para demostrar el fallo de Check Digital.
 # Copiar sobre properties.yml en la raiz para que el pipeline falle.
 
 Pais: BRASIL

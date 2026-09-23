@@ -41,7 +41,7 @@ for clave, valores in PERMITIDOS.items():
 resumen = os.environ.get("GITHUB_STEP_SUMMARY")
 if resumen:
     with open(resumen, "a") as s:
-        s.write("## Check Context\n\n| Clave | Valor |\n|---|---|\n")
+        s.write("## Check Digital\n\n| Clave | Valor |\n|---|---|\n")
         for clave in OBLIGATORIAS:
             s.write(f"| {clave} | {props.get(clave, '(ausente)')} |\n")
         s.write("\n")

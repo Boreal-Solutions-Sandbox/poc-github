@@ -144,12 +144,8 @@ print(f"  {origen} -> {destino['name']}" if movida else f"  ya estaba en {destin
 resumen = os.environ.get("GITHUB_STEP_SUMMARY")
 if resumen:
     with open(resumen, "a") as s:
-        s.write("## Ajuste Trello\n\n| Item | Valor |\n|---|---|\n")
+        s.write("## Actualización Trello\n\n| Item | Valor |\n|---|---|\n")
         s.write(f"| Ticket | {objetivo} |\n")
         s.write(f"| Tarjeta | [{tarjeta['name']}]({tarjeta['shortUrl']}) |\n")
-        s.write(f"| Identificada por | {metodo} |\n")
         s.write(f"| Columna anterior | {origen} |\n")
         s.write(f"| Columna actual | **{destino['name']}** |\n")
-        if COMENTARIO:
-            s.write("| Comentario | agregado |\n")
-        s.write("\n")

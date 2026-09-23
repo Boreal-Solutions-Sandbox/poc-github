@@ -12,7 +12,7 @@ Sin herramientas pagas: todo corre con Actions, Semgrep OSS y Trivy.
 ```
 .github/workflows/
   base.yml     Workflow REUTILIZABLE. No se dispara solo.
-               STEP 1  Check Context   -> valida properties.yml
+               STEP 1  Check Digital   -> valida properties.yml
                STEP 2  Security Scan   -> Semgrep + Trivy
 
   ci.yml       Se dispara en push a cualquier rama (menos main) y en cada PR.
@@ -30,7 +30,7 @@ se agrega en un solo lugar.
 
 ---
 
-## STEP 1 — Check Context
+## STEP 1 — Check Digital
 
 Lee `properties.yml` de la raíz del repo:
 
@@ -137,7 +137,7 @@ El token necesita scopes `repo` **y** `workflow`.
 
 - Require a pull request before merging (1 approval)
 - Require review from Code Owners
-- Require status checks: `Contexto y seguridad / Check Context`,
+- Require status checks: `Contexto y seguridad / Check Digital`,
   `Contexto y seguridad / Security Scan`
 - Block force pushes
 
@@ -161,7 +161,7 @@ git checkout -b feature/nueva-pantalla
 git commit -am "cambio" && git push -u origin feature/nueva-pantalla
 ```
 
-Mostrar en Actions: `Check Context` en verde con la tabla de metadatos,
+Mostrar en Actions: `Check Digital` en verde con la tabla de metadatos,
 `Security Scan` en rojo con los 10 hallazgos en el Step Summary.
 
 ### Acto 2 — Contexto inválido (5 min)
@@ -171,7 +171,7 @@ cp demo/properties-invalido.yml properties.yml
 git commit -am "cambiar metadatos" && git push
 ```
 
-`Check Context` falla: `Pais='BRASIL' no permitido`, `Lenguaje='GOLANG' no
+`Check Digital` falla: `Pais='BRASIL' no permitido`, `Lenguaje='GOLANG' no
 permitido`. **El escaneo ni siquiera arranca** — el gate de contexto corta antes.
 
 Revertir: `git checkout HEAD~1 properties.yml`
@@ -202,13 +202,13 @@ Si intentás aprobar tu propio PR, el workflow falla con
 ## Contenido
 
 ```
-.github/workflows/base.yml       Check Context + Security Scan (reutilizable)
+.github/workflows/base.yml       Check Digital + Security Scan (reutilizable)
 .github/workflows/ci.yml         Disparo en push y PR
 .github/workflows/deploy.yml     Disparo por aprobacion de PR + deploy
 .github/dependabot.yml           Actualizacion de dependencias
 .github/CODEOWNERS               Revision obligatoria por equipo
 .semgrep/rules.yml               9 reglas locales de seguridad
-properties.yml                   Metadatos validados por Check Context
+properties.yml                   Metadatos validados por Check Digital
 scripts/check_context.py         Validador de properties.yml
 scripts/aplicar-fix.sh           Aplica las correcciones (Acto 4)
 app/                             Aplicacion vulnerable

@@ -28,9 +28,9 @@ on:
 
 jobs:
 
-  # ---------- STEP 1: Check Context ----------
+  # ---------- STEP 1: Check Digital ----------
   check-context:
-    name: Check Context
+    name: Check Digital
     runs-on: ubuntu-latest
     outputs:
       lenguaje:    ${{ steps.validar.outputs.lenguaje }}
