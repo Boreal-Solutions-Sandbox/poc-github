@@ -1,0 +1,86 @@
+rules:
+
+  # ---------- Python ----------
+  - id: rule-credencial-hardcodeada-py
+    patterns:
+      - pattern: $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(password|passwd|secret|token|api_key|apikey|credential).*
+    message: >-
+      Credencial hardcodeada en el codigo fuente. Usar variables de entorno o GitHub Secrets.
+    languages: [python]
+    severity: ERROR
+
+  - id: rule-sql-injection
+    mode: taint
+    pattern-sources:
+      - pattern: request.args.get(...)
+      - pattern: request.form.get(...)
+      - pattern: request.values.get(...)
+    pattern-sinks:
+      - patterns:
+          - pattern: $CON.execute($Q)
+          - pattern-not: $CON.execute("...", ...)
+    message: >-
+      Posible SQL injection: entrada del usuario llega a una consulta sin parametrizar.
+    languages: [python]
+    severity: ERROR
+
+  - id: rule-flask-debug
+    patterns:
+      - pattern: $APP.run(..., debug=True, ...)
+    message: Flask con debug=True expone un interprete remoto.
+    languages: [python]
+    severity: ERROR
+
+  - id: rule-bind-todas-las-interfaces
+    patterns:
+      - pattern: $APP.run(..., host="0.0.0.0", ...)
+    message: El servicio escucha en todas las interfaces de red.
+    languages: [python]
+    severity: WARNING
+
+  - id: rule-url-insegura-py
+    pattern-regex: |-
+      http://[^"'\s]+
+    message: Endpoint sin cifrado (HTTP). Usar HTTPS.
+    languages: [python]
+    severity: WARNING
+
+  # ---------- JavaScript ----------
+  - id: rule-credencial-hardcodeada-js
+    patterns:
+      - pattern-either:
+          - pattern: const $VAR = "..."
+          - pattern: let $VAR = "..."
+          - pattern: var $VAR = "..."
+      - metavariable-regex:
+          metavariable: $VAR
+          regex: (?i).*(password|pass|secret|token|api_key|apikey|credential).*
+    message: Credencial expuesta en el frontend. Nunca debe viajar al navegador.
+    languages: [javascript]
+    severity: ERROR
+
+  - id: rule-xss-innerhtml
+    patterns:
+      - pattern-either:
+          - pattern: $EL.innerHTML = <... $X ...>
+          - pattern: $EL.innerHTML += <... $X ...>
+    message: "Asignacion a innerHTML con datos dinamicos: riesgo de XSS. Usar textContent."
+    languages: [javascript]
+    severity: ERROR
+
+  - id: rule-eval
+    patterns:
+      - pattern: eval(...)
+    message: "Uso de eval(): permite ejecucion arbitraria de codigo."
+    languages: [javascript]
+    severity: ERROR
+
+  - id: rule-url-insegura-js
+    pattern-regex: |-
+      http://[^"'\s]+
+    message: Endpoint sin cifrado (HTTP). Usar HTTPS.
+    languages: [javascript]
+    severity: WARNING

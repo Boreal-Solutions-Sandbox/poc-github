@@ -1,0 +1,18 @@
+# Metadatos obligatorios del cambio.
+# El pipeline valida este archivo antes de escanear, ajustar Trello o desplegar.
+
+Pais: ARGENTINA
+Owner: Ramiro
+Equipo: devs
+Aplicacion: demo-poc
+Lenguaje: PYTHON
+Criticidad: MEDIA
+Entorno: DESARROLLO
+
+# --- Trazabilidad con Trello ---
+# Numero de ticket. El pipeline busca la tarjeta que lo tenga en el campo
+# personalizado "Nº Ticket" o, si no esta cargado, en el titulo como #NUMERO.
+Ticket: 507954
+
+# Tablero donde vive la tarjeta.
+TableroTrello: 6ab3d65944a48c9027552945

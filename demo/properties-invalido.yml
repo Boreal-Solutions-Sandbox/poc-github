@@ -1,0 +1,10 @@
+# Version invalida de properties.yml, para demostrar el fallo de Check Context.
+# Copiar sobre properties.yml en la raiz para que el pipeline falle.
+
+Pais: BRASIL
+Owner: Ramiro
+Equipo: devs
+Aplicacion: demo-poc
+Lenguaje: GOLANG
+Criticidad: MEDIA
+Entorno: DESARROLLO

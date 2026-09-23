@@ -1,0 +1,48 @@
+name: Actualización Trello
+
+# Se dispara cuando entra un commit a main.
+# Con el ruleset activo, la unica forma de que eso ocurra es mergeando un PR.
+on:
+  push:
+    branches: [main]
+
+jobs:
+
+  verificar-merge:
+    name: Verificar origen del cambio
+    runs-on: ubuntu-latest
+    steps:
+      - name: Registrar quien mergeo
+        run: |
+          echo "## Cambio integrado a main" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Valor |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Mergeado por | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+
+  validar:
+    name: Contexto y seguridad
+    needs: verificar-merge
+    uses: ./.github/workflows/base.yml
+
+  trello:
+    name: Actualización Trello
+    needs: validar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Mover tarjeta a CAB
+        env:
+          TRELLO_KEY:     ${{ secrets.TRELLO_KEY }}
+          TRELLO_TOKEN:   ${{ secrets.TRELLO_TOKEN }}
+          TRELLO_BOARD:   ${{ needs.validar.outputs.tablero }}
+          TRELLO_TICKET:  ${{ needs.validar.outputs.ticket }}
+          TRELLO_COLUMNA: CAB
+          TRELLO_COMENTARIO: "Tarjeta actualizada desde el Pipeline. Chequeos Digital y Ciberseguridad OK."
+        run: python scripts/trello_mover.py

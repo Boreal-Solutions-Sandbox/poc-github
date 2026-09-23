@@ -1,0 +1,144 @@
+name: Pipeline Base
+
+# Workflow reutilizable. No se dispara solo: lo invocan ci.yml y deploy.yml.
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: "Commit o rama a analizar. Por defecto, el del evento."
+        required: false
+        type: string
+        default: ''
+    outputs:
+      lenguaje:
+        description: "Lenguaje declarado en properties.yml"
+        value: ${{ jobs.check-context.outputs.lenguaje }}
+      aplicacion:
+        description: "Nombre de la aplicacion"
+        value: ${{ jobs.check-context.outputs.aplicacion }}
+      owner:
+        description: "Responsable declarado"
+        value: ${{ jobs.check-context.outputs.owner }}
+      ticket:
+        description: "Numero de ticket declarado"
+        value: ${{ jobs.check-context.outputs.ticket }}
+      tablero:
+        description: "Tablero de Trello"
+        value: ${{ jobs.check-context.outputs.tablero }}      
+
+jobs:
+
+  # ---------- STEP 1: Check Context ----------
+  check-context:
+    name: Check Context
+    runs-on: ubuntu-latest
+    outputs:
+      lenguaje:    ${{ steps.validar.outputs.lenguaje }}
+      aplicacion:  ${{ steps.validar.outputs.aplicacion }}
+      owner:       ${{ steps.validar.outputs.owner }}
+      criticidad:  ${{ steps.validar.outputs.criticidad }}
+      ticket:      ${{ steps.validar.outputs.ticket }}
+      tablero:     ${{ steps.validar.outputs.tablero }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias del validador
+        run: pip install pyyaml
+
+      - name: Validar properties.yml
+        id: validar
+        run: python scripts/check_context.py
+
+  # ---------- STEP 2: Security Scan ----------
+  security-scan:
+    name: Security Scan
+    needs: check-context
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+
+      - name: Trivy - dependencias, secretos y misconfiguraciones
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+          format: table
+          output: trivy.txt
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Semgrep - analisis estatico de codigo
+        run: |
+          pip install semgrep
+          # Reglas locales (no dependen del registry) + reglas publicas si hay red.
+          semgrep scan \
+            --config .semgrep/rules.yml \
+            --config p/security-audit \
+            --metrics off \
+            --json --output semgrep.json \
+            app/ || true
+
+      - name: Consolidar hallazgos
+        run: |
+          python - <<'PY' > resumen.md
+          import json, os
+          total = 0
+          lineas = []
+          try:
+              with open("semgrep.json") as f:
+                  data = json.load(f)
+              for r in data.get("results", []):
+                  total += 1
+                  sev = r["extra"]["severity"]
+                  regla = r["check_id"].split(".")[-1]
+                  arch = r["path"]
+                  linea = r["start"]["line"]
+                  lineas.append(f"| {sev} | {regla} | {arch}:{linea} |")
+          except Exception as e:
+              lineas.append(f"| - | error leyendo semgrep.json: {e} | - |")
+
+          print("## Security Scan\n")
+          print("### Semgrep\n")
+          print("| Severidad | Regla | Ubicacion |")
+          print("|---|---|---|")
+          print("\n".join(lineas) if lineas else "| - | sin hallazgos | - |")
+          print(f"\n**Total Semgrep: {total} hallazgos**\n")
+          PY
+
+          echo "### Trivy" >> resumen.md
+          echo '```' >> resumen.md
+          head -60 trivy.txt >> resumen.md
+          echo '```' >> resumen.md
+
+          cat resumen.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Publicar artefactos del escaneo
+        uses: actions/upload-artifact@v4
+        with:
+          name: reporte-seguridad
+          path: |
+            trivy.txt
+            semgrep.json
+            resumen.md
+
+      - name: Evaluar resultado
+        run: |
+          HALLAZGOS=$(python -c "import json;print(len(json.load(open('semgrep.json'))['results']))")
+          echo "Hallazgos de Semgrep: $HALLAZGOS"
+          if [ "$HALLAZGOS" -gt 0 ]; then
+            echo "::error::Se encontraron $HALLAZGOS hallazgos de seguridad. Pipeline bloqueado."
+            exit 1
+          fi
