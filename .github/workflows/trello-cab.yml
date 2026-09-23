@@ -1,25 +1,27 @@
-name: Actualización Trello
+name: CD - Actualización Trello
 
-# Se dispara cuando entra un commit a main.
-# Con el ruleset activo, la unica forma de que eso ocurra es mergeando un PR.
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches: [main]
 
 jobs:
 
   verificar-merge:
     name: Verificar origen del cambio
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
-      - name: Registrar quien mergeo
+      - name: Registrar el merge
         run: |
-          echo "## Cambio integrado a main" >> $GITHUB_STEP_SUMMARY
+          echo "## Cambio integrado a main vía Pull Request" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Item | Valor |" >> $GITHUB_STEP_SUMMARY
           echo "|---|---|" >> $GITHUB_STEP_SUMMARY
-          echo "| Mergeado por | ${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | ${{ github.sha }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Pull Request | #${{ github.event.pull_request.number }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Autor | ${{ github.event.pull_request.user.login }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mergeado por | ${{ github.event.pull_request.merged_by.login }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | ${{ github.event.pull_request.merge_commit_sha }} |" >> $GITHUB_STEP_SUMMARY
 
   validar:
     name: Contexto y seguridad
@@ -28,7 +30,7 @@ jobs:
 
   trello:
     name: Actualización Trello
-    needs: validar
+    needs: [verificar-merge, validar]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
