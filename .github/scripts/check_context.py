@@ -5,7 +5,7 @@ import sys
 
 import yaml
 
-ARCHIVO = "properties.yml"
+ARCHIVO = "requerimientos-digitales.yml"
 
 OBLIGATORIAS = ["Pais", "Owner", "Equipo", "Aplicacion", "Lenguaje", "Criticidad", "Entorno", "Ticket", "TableroTrello"]
 PERMITIDOS = {

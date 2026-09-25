@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Mueve la tarjeta de Trello asociada a un ticket hacia una columna.
 
-La tarjeta se identifica por el numero de ticket declarado en properties.yml:
+La tarjeta se identifica por el numero de ticket declarado en requerimientos-digitales.yml:
   1. Campo personalizado del tablero (por defecto "Nº Ticket").
   2. Si no esta cargado, se busca el patron #NUMERO en el titulo de la tarjeta.
 """
@@ -79,9 +79,9 @@ def buscar_por_titulo(tarjetas, objetivo):
 if not KEY or not TOKEN:
     fallar("Faltan los secrets TRELLO_KEY y/o TRELLO_TOKEN.")
 if not BOARD:
-    fallar("Falta TRELLO_BOARD (clave TableroTrello en properties.yml).")
+    fallar("Falta TRELLO_BOARD (clave TableroTrello en requerimientos-digitales.yml).")
 if not TICKET:
-    fallar("Falta TRELLO_TICKET (clave Ticket en properties.yml).")
+    fallar("Falta TRELLO_TICKET (clave Ticket en requerimientos-digitales.yml).")
 if not COLUMNA:
     fallar("Falta TRELLO_COLUMNA (nombre de la columna destino).")
 
