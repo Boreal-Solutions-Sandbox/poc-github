@@ -2,18 +2,15 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Biogreen - Hola Mundo</title>
+  <title>POC - Hola Mundo</title>
 </head>
 <body>
-  <h1>Hola Mundo, Biogreen</h1>
+  <h1>Hola Mundo, POC</h1>
   <p id="saludo"></p>
   <p id="resultado"></p>
 
-  <!-- VULN: enlace por IP, sin host y sin HTTPS -->
-  <p>Panel interno: <a href="http://192.168.10.25:8080/admin">http://192.168.10.25:8080/admin</a></p>
-
-  <!-- VULN: script externo sin HTTPS ni integrity -->
-  <script src="http://cdn.ejemplo-inseguro.com/analytics.js"></script>
+  <!-- FIX: nombre de host y HTTPS -->
+  <p>Panel interno: <a href="https://panel.poc.internal/admin">Panel de administracion</a></p>
 
   <script src="script.js"></script>
 </body>

@@ -1,38 +1,39 @@
+import os
 import sqlite3
 
 from flask import Flask, request
 
 app = Flask(__name__)
 
-# VULN 1: credencial hardcodeada -> la detecta Secret Scanning / CodeQL
-DB_PASSWORD = "Biogreen2024!"
-API_TOKEN = "AKIAIOSFODNN7EXAMPLE"
+# FIX: credenciales desde el entorno / GitHub Secrets
+DB_PASSWORD = os.environ["DB_PASSWORD"]
+API_TOKEN = os.environ["API_TOKEN"]
 
-# VULN 2: endpoint interno por IP y sin HTTPS
-BACKEND_URL = "http://192.168.10.25:8080/api"
+# FIX: endpoint por nombre y sobre HTTPS
+BACKEND_URL = os.environ.get("BACKEND_URL", "https://backend.poc.internal/api")
 
 
 @app.route("/")
 def home():
-    return open("app/index.html").read()
+    with open("app/index.html") as f:
+        return f.read()
 
 
 @app.route("/usuario")
 def usuario():
-    nombre = request.args.get("nombre")
-    con = sqlite3.connect("biogreen.db")
-    # VULN 3: SQL injection por concatenacion -> la detecta CodeQL
-    query = "SELECT * FROM usuarios WHERE nombre = '" + nombre + "'"
-    cur = con.execute(query)
+    nombre = request.args.get("nombre", "")
+    con = sqlite3.connect("poc.db")
+    # FIX: consulta parametrizada
+    cur = con.execute("SELECT * FROM usuarios WHERE nombre = ?", (nombre,))
     return str(cur.fetchall())
 
 
 @app.route("/config")
 def config():
-    # VULN 4: expone secretos por la API
-    return {"password": DB_PASSWORD, "token": API_TOKEN, "backend": BACKEND_URL}
+    # FIX: no se exponen secretos
+    return {"backend": BACKEND_URL, "estado": "ok"}
 
 
 if __name__ == "__main__":
-    # VULN 5: debug activo y bind a todas las interfaces
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    # FIX: sin debug, bind a localhost
+    app.run(host="127.0.0.1", port=8080, debug=False)

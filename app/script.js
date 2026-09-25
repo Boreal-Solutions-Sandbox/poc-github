@@ -1,21 +1,24 @@
-// VULN: credencial en el frontend -> Secret scanning
-const ADMIN_PASS = "admin123";
-const API_ENDPOINT = "http://192.168.10.25:8080/api";
+// FIX: sin credenciales en el frontend, endpoint relativo
+const API_ENDPOINT = "/api";
 
-// VULN: XSS por innerHTML con input del usuario -> CodeQL (js/xss)
+// FIX: textContent en lugar de innerHTML -> no hay XSS
 const params = new URLSearchParams(window.location.search);
-const mensaje = params.get("msg");
-document.getElementById("saludo").innerHTML = "Hola, " + mensaje;
+const mensaje = params.get("msg") || "";
+document.getElementById("saludo").textContent = "Hola, " + mensaje;
 
-// VULN: uso de eval sobre dato externo -> CodeQL (js/code-injection)
+// FIX: sin eval
 const expr = params.get("calc");
-if (expr) {
-  document.getElementById("resultado").textContent = eval(expr);
+if (expr && /^[0-9+\-*/ ().]+$/.test(expr)) {
+  document.getElementById("resultado").textContent = "Expresion recibida";
 }
 
-// VULN: credencial enviada por query string y sin HTTPS
-function login(usuario) {
-  fetch(API_ENDPOINT + "/login?user=" + usuario + "&pass=" + ADMIN_PASS)
+// FIX: credenciales por POST, nunca por query string
+function login(usuario, clave) {
+  fetch(API_ENDPOINT + "/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ user: usuario, pass: clave }),
+  })
     .then((r) => r.json())
-    .then((d) => console.log(d));
+    .then((d) => console.log(d.estado));
 }
